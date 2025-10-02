@@ -1,0 +1,36 @@
+name: Run Kotlin tests
+
+on:
+  # this workflow is only called by others, won't be executed on itself
+  workflow_call:
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  run-tests:
+    name: Run Kotlin tests
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Start dependencies (blocking until up)
+        run: ./development.sh start:deps
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          java-package: jdk
+          architecture: x64
+          distribution: temurin
+          cache: maven
+
+      - name: Run tests and try building a package
+        run: |
+          # run tests
+          mvn clean verify
