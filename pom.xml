@@ -217,6 +217,17 @@
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
+                <configuration>
+                    <compilerPlugins>
+                        <plugin>all-open</plugin>
+                    </compilerPlugins>
+                    <pluginOptions>
+                        <option>all-open:annotation=org.springframework.scheduling.annotation.Async</option>
+                        <option>all-open:annotation=org.springframework.transaction.annotation.Transactional</option>
+                        <option>all-open:annotation=org.springframework.cache.annotation.Cacheable</option>
+                        <option>all-open:annotation=org.springframework.stereotype.Component</option>
+                    </pluginOptions>
+                </configuration>
                 <executions>
                     <execution>
                         <id>compile</id>
