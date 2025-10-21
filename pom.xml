@@ -439,6 +439,13 @@
             <artifactId>jackson-module-kotlin</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <!-- version inherited from the Spring Boot parent POM -->
+            <version>${postgresql.version}</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
 </project>
