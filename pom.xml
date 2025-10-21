@@ -277,6 +277,23 @@
                 <version>${failsafe-plugin.version}</version>
             </plugin>
             <plugin>
+                <groupId>com.github.gantsign.maven</groupId>
+                <artifactId>ktlint-maven-plugin</artifactId>
+                <version>${ktlint-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>check</id>
+                        <configuration>
+                            <sourceRoots>${project.build.sourceDirectory}/fi</sourceRoots>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen-maven</artifactId>
                 <!-- version inherited from the Spring Boot parent POM -->
