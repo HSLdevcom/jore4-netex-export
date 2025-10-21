@@ -45,6 +45,151 @@
         <start.class>fi.hsl.jore4.export.netex.NetexExportApplicationKt</start.class>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <build.profile.id>prod</build.profile.id>
+                <build.property.file>profiles/${build.profile.id}/config.properties</build.property.file>
+                <skip.jooq.generation>true</skip.jooq.generation>
+            </properties>
+            <build>
+                <filters>
+                    <filter>${build.property.file}</filter>
+                </filters>
+                <plugins>
+                    <!-- Read properties files for build plugins. -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>properties-maven-plugin</artifactId>
+                        <version>${build-properties-plugin.version}</version>
+
+                        <configuration>
+                            <files>
+                                <file>${build.property.file}</file>
+                            </files>
+                            <properties/>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <id>read-config-properties</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>read-project-properties</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>dev</id>
+            <properties>
+                <build.profile.id>dev</build.profile.id>
+                <build.property.file>profiles/${build.profile.id}/config.properties</build.property.file>
+                <build.property.user-override.file>profiles/${build.profile.id}/config.${user.name}.properties</build.property.user-override.file>
+                <skip.jooq.generation>true</skip.jooq.generation>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <filters>
+                    <filter>${build.property.file}</filter>
+                    <filter>${build.property.user-override.file}</filter>
+                </filters>
+                <plugins>
+                    <!-- Read properties files for build plugins. -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>properties-maven-plugin</artifactId>
+                        <version>${build-properties-plugin.version}</version>
+
+                        <configuration>
+                            <quiet>true</quiet>
+                            <files>
+                                <file>${build.property.file}</file>
+                                <file>${build.property.user-override.file}</file>
+                            </files>
+                            <properties/>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <id>read-config-properties</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>read-project-properties</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-devtools</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>ci</id>
+            <properties>
+                <build.profile.id>ci</build.profile.id>
+                <build.property.file>profiles/${build.profile.id}/config.properties</build.property.file>
+                <skip.jooq.generation>false</skip.jooq.generation>
+            </properties>
+            <build>
+                <filters>
+                    <filter>${build.property.file}</filter>
+                </filters>
+                <plugins>
+                    <!-- Read properties files for build plugins. -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>properties-maven-plugin</artifactId>
+                        <version>${build-properties-plugin.version}</version>
+
+                        <configuration>
+                            <files>
+                                <file>${build.property.file}</file>
+                            </files>
+                            <properties/>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <id>read-config-properties</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>read-project-properties</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-devtools</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
@@ -99,6 +244,95 @@
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${failsafe-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <!-- version inherited from the Spring Boot parent POM -->
+                <version>${jooq.version}</version>
+
+                <executions>
+                    <execution>
+                        <id>generate-jore4-database-classes</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip.jooq.generation}</skip>
+                            <jdbc>
+                                <driver>${jore4.db.driver}</driver>
+                                <url>${jore4.db.url}</url>
+                                <user>${jore4.db.username}</user>
+                                <password>${jore4.db.password}</password>
+                            </jdbc>
+                            <generator>
+                                <name>org.jooq.codegen.KotlinGenerator</name>
+                                <database>
+                                    <name>${jooq.generator.db.dialect}</name>
+                                    <excludes>
+                                        AUTH_SESSION.*
+                                        | HDB_CATALOG.*
+                                        | internal_utils.*
+                                        | SKEYS
+                                        | SVALS
+                                        | EACH
+                                        | PUBLIC.*
+                                        | pg_catalog.*
+                                        | information_schema.*
+                                    </excludes>
+                                    <excludeSql>
+                                        <!-- Select all generated columns. They don't work nicely with jOOQ DAO UPDATE methods. -->
+                                        SELECT table_schema || '\.' || table_name || '\.' || column_name AS fully_qualified_name
+                                        FROM information_schema.columns
+                                        WHERE is_generated = 'ALWAYS'
+                                    </excludeSql>
+                                    <includeTables>true</includeTables>
+                                    <includeInvisibleColumns>false</includeInvisibleColumns>
+                                    <includeExcludeColumns>true</includeExcludeColumns>
+                                    <includeEmbeddables>false</includeEmbeddables>
+                                    <includeRoutines>true</includeRoutines>
+                                    <includePackages>false</includePackages>
+                                    <includePackageRoutines>false</includePackageRoutines>
+                                    <includePackageUDTs>false</includePackageUDTs>
+                                    <includePackageConstants>false</includePackageConstants>
+                                    <includeUDTs>false</includeUDTs>
+                                    <includeDomains>false</includeDomains>
+                                    <includeSequences>true</includeSequences>
+                                    <includePrimaryKeys>true</includePrimaryKeys>
+                                    <includeUniqueKeys>true</includeUniqueKeys>
+                                    <includeForeignKeys>true</includeForeignKeys>
+                                    <includeCheckConstraints>false</includeCheckConstraints>
+                                    <includeSystemCheckConstraints>false</includeSystemCheckConstraints>
+                                    <includeIndexes>false</includeIndexes>
+                                    <includeSystemIndexes>false</includeSystemIndexes>
+                                </database>
+                                <generate>
+                                    <records>false</records>
+                                    <daos>true</daos>
+                                    <springAnnotations>true</springAnnotations>
+                                    <springDao>true</springDao>
+                                    <kotlinNotNullPojoAttributes>true</kotlinNotNullPojoAttributes>
+                                    <kotlinNotNullRecordAttributes>true</kotlinNotNullRecordAttributes>
+                                    <kotlinNotNullInterfaceAttributes>true</kotlinNotNullInterfaceAttributes>
+                                </generate>
+                                <target>
+                                    <packageName>fi.hsl.jore.jore4.jooq</packageName>
+                                    <directory>${project.basedir}/target/generated-sources/jooq</directory>
+                                </target>
+                            </generator>
+                        </configuration>
+                    </execution>
+                </executions>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <!-- version inherited from the Spring Boot parent POM -->
+                        <version>${postgresql.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
