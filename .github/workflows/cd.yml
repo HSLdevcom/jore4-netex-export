@@ -20,10 +20,13 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    uses: HSLdevcom/jore4-tools/.github/workflows/shared-build-and-publish-docker-image.yml@shared-build-and-publish-docker-image-v1
+    uses: HSLdevcom/jore4-tools/.github/workflows/shared-build-and-publish-docker-image.yml@shared-build-and-publish-docker-image-v5
     with:
       docker_image_name: jore4-netex-export
       build_arm64_image: true
+      artifact-id: ${{ needs.run_kotlin_tests.outputs.built-artifact-id }}
+      artifact-path: target/generated-sources/jooq/
+      context: .
     secrets:
       azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
       azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
