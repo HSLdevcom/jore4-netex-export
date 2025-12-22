@@ -3,6 +3,14 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Keep only generic config
+profiles/ci/*
+!profiles/ci/config.properties
+profiles/dev/*
+!profiles/dev/config.properties
+profiles/prod/*
+!profiles/prod/config.properties
+
 ### Docker ###
 docker/*
 !docker/docker-compose.custom.yml

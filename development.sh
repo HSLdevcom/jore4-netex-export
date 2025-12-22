@@ -41,6 +41,9 @@ print_usage() {
     the BUNDLE_REF environment variable. By default, the latest version is
     downloaded.
 
+  generate:jooq
+    Generate jOOQ classes.
+
   stop
     Stop the dependencies and the dockerised application.
 
@@ -152,6 +155,10 @@ wait_for_test_databases_to_be_ready() {
   done
 }
 
+generate_jooq() {
+  mvn clean generate-sources -Pci
+}
+
 ### Control flow
 
 COMMAND=${1:-}
@@ -172,8 +179,9 @@ case $COMMAND in
     start_deps
     ;;
 
-  build:data-inserter)
-    prepare_timetables_data_inserter
+  generate:jooq)
+    wait_for_test_databases_to_be_ready
+    generate_jooq
     ;;
 
   stop)
